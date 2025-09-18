@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+	import { useState,useEffect } from "react";
 import axios from 'axios'
 
 const Produto = () => {
@@ -19,7 +19,7 @@ const Produto = () => {
         }
         // TRATAMENTO DE ERROS
         try{
-            const response = await axios.post(API_URL);
+            const response = await axios.post(API_URL,novoProduto);
             setProduto([...produto,response.data])
             setNovoProduto({nome:"", descricao:""})
             setEditar(false);
@@ -38,7 +38,8 @@ const Produto = () => {
     // CONSULTAR PRODUTOS CADASTRADOS
     const consultarProdutos= async ()=>{
         try{
-            const response = await axios.get(API_URL)
+            const response = await axios.get(API_URL);
+            setProduto(response.data);
 
         }
         catch(error){
@@ -68,7 +69,7 @@ const Produto = () => {
 
     // DELETAR UM PRODUTO CADASTRADOS
 
-    const deletarProduto =async ()=>{
+    const deletarProduto =async (id)=>{
         if(window.confirm("Tem certeza que deseja deleta este produto")){
             try{
                 await axios.delete(`${API_URL}/${id}`);
@@ -97,11 +98,11 @@ const Produto = () => {
     }
 
   return (
-    <div>
-      <h1>Cadastro de Produto</h1>
-      <form>
-        <div>
-          <label>Nome Produto</label>
+    <div className="mx-auto p-4 bg-green-300">
+      <h1 className=" text-2xl font-bold mb-4 bg-emerald-300 h-auto w-auto flex justify-center">Cadastro de Produto</h1>
+      <form className="mb-4">
+        <div className="mb-4">
+          <label className=" block text-xl font-medium text-gray-700 ">Nome Produto</label>
           <input 
            type="text"
            id="nome" 
@@ -109,33 +110,38 @@ const Produto = () => {
            value={novoProduto.nome} //pega a variavel do useState
             // pega o que o for digitado no campo    
            onChange={(e)=>setNovoProduto({...novoProduto, nome: e.target.value})}
+           className="mt-2 border rounded w-full bg-amber-50"
            
            />
         </div>
 
         <div>
-          <label>Descrição Produto</label>
+          <label className=" block text-xl font-medium text-gray-700">Descrição Produto</label>
           <input
             type="text"
             id="descricao"
             placeholder="Digite descrição Produto"
             value={novoProduto.descricao}
             onChange={(e)=>setNovoProduto({...novoProduto, descricao : e.target.value})}
+            className="mt-2 border rounded w-full bg-amber-50"
           />
         </div>
-            <button onClick={handleSubmit}>
+            <button onClick={handleSubmit}
+                className="bg-blue-600 hover:bg-blue-900 tex-white font-bold py-2 px-4 mt-4 rounded">
                 {editar ? "Alterar" : "Cadastrar"}
             </button>
       </form>
       <ul>
         {produto.map(item =>(
-        <li key={item.id}>
+        <li key={item.id} className="border p-2 mb-4 rounded flex items-center justify-between bg-amber-50">
             <div>
-                <strong>{item.nome}</strong>{item.descricao}
+                <strong className="font-semibold">{item.nome}</strong>{item.descricao}
             </div>
             <div>
-                <button onClick={handleAlterar(item)}>Editar</button>
-                <button onClick={()=>deletarProduto(item.id)}>Deletar</button>
+                <button onClick={()=>handleAlterar(item)}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-2 rounded mr-2">Editar</button>
+                <button onClick={()=>deletarProduto(item.id)}
+                     className="bg-red-500 hover:bg-yellow-600 text-black font-bold py-2 px-2 rounded mr-2">Deletar</button>
             </div>
         </li>
         ))}     
