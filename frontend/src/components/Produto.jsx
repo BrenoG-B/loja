@@ -1,147 +1,160 @@
-	import { useState,useEffect } from "react";
-import axios from 'axios'
-
+import { useState,useEffect } from "react";
+import axios from "axios";
+ 
 const Produto = () => {
-    // DECLARANDO A URL DA API QUE SERÁ CONSUMIDA
+    // DECLARANDO A URL DA API QUE SERA CONSUMIDA
     const API_URL = "http://localhost:3001/produto";
-
-    // HOOK- useState Manipula o estado da variável
-    const [produto, setProduto]=useState([]);
-    const [novoProduto, setNovoProduto]=useState({nome:"",descricao:""});
-    const [editar, setEditar]=useState(false);
+ 
+    // HOOK - useState Mainupla o estado da variavel
+    const [produto, setProduto] = useState([]);
+    const [novoProduto, setNovoProduto] = useState({nome:"",descricao:""});
+    const [editar, setEditar] = useState(false);
+    const [pesquisar,setPesquisar]=useState("");
 
     // CADASTRAR PRODUTO
-    const cadastrarProduto =async ()=>{
+    const cadastrarProduto = async ()=>{
         // VALIDAR CAMPOS
         if(!novoProduto.nome || !novoProduto.descricao){
             alert("Campos obrigatórios")
             return;
         }
+ 
         // TRATAMENTO DE ERROS
         try{
             const response = await axios.post(API_URL,novoProduto);
             setProduto([...produto,response.data])
-            setNovoProduto({nome:"", descricao:""})
+            setNovoProduto({nome:"",descricao:""})
             setEditar(false);
         }
         catch(error){
-            console.log("Erro ao cadastrar o produto",error)
+            console.log("Erro ao cadastrar o produto", error)
         }
     }
-
-    // HOOK useEffect - EFEITO PARA CARREGAR A LISTAR DE TODOS OS PRODUTOS CADASTRADOS
-
-    useEffect(()=>{
-        consultarProdutos();
-    })
-
+ 
     // CONSULTAR PRODUTOS CADASTRADOS
-    const consultarProdutos= async ()=>{
+    const consultarProdutos = async()=>{
         try{
-            const response = await axios.get(API_URL);
+            // VERIFICA SE TROUXE UMA PESQUISA ESPECÍFICA SE NÃO DEVOLVE A LISTA COM TODOS
+            const url = pesquisar ? `${API_URL}/search?pesquisa=${pesquisar}` : API_URL
+            const response = await axios.get(url);
             setProduto(response.data);
-
         }
         catch(error){
-            console.log("Erro ao consultar produto",error)
+            console.log("Erro ao consultao produto", error)
         }
     }
-    
-    // ALTERAR PRODUTO CADASTRADO
 
+    // HOOK useEffect - EFEITO PARA CARREGAR A LISTA DE TODOS OS PRODUTOS CADASTRADOS
+    useEffect(()=>{
+        const timer = setTimeout(()=>{
+            consultarProdutos();
+        },300) //3 segundos
+        return ()=>clearTimeout(timer)
+        },[pesquisar])
+ 
+    // ALTERAR PRODUTO CADASTRADO
     const alterarProduto = async()=>{
         if(!novoProduto.nome || !novoProduto.descricao){
-            alert("Campos obgrigatórios")
+            alert("Campos obrigatórios")
             return;
-        } 
+        }
+ 
         // TRATAMENTO DE ERROS
         try{
-
-        const response =await axios.put(`${API_URL}/${novoProduto.id}`,novoProduto);
-        setProduto(produto.map(produto =>produto.id === novoProduto.id ? response.data : produto))
-        setNovoProduto({nome:"",descricao:""})
-        setEditar(false);
-
-        }catch(error){
-            console.log("Erro ao alterar produto",error)
+            const response = await axios.put(`${API_URL}/${novoProduto.id}`, novoProduto)
+            setProduto(produto.map(produto => produto.id === novoProduto.id ? response.data : produto))
+            setNovoProduto({nome:"",descricao:""})
+            setEditar(false);
+        }
+        catch(error){
+            console.log("Erro ao alterar produto", error)
         }
     }
-
-    // DELETAR UM PRODUTO CADASTRADOS
-
-    const deletarProduto =async (id)=>{
-        if(window.confirm("Tem certeza que deseja deleta este produto")){
+ 
+    // DELETAR O PRODUTO CADASTRADO
+    const deletarProduto = async(id)=>{
+        if(window.confirm("Tem certeza que deseja deletar este produto")){
             try{
                 await axios.delete(`${API_URL}/${id}`);
                 setProduto(produto.filter((item)=>item.id !== id));
             }
             catch(error){
-                    console.log("Error ao excluir um produto",error)
+                console.log("Error ao excluir um produto", error)
             }
-        }else{
+        }
+        else{
             console.log("Exclusão do produto cancelada")
         }
     }
-
+ 
     // METODO ALTERAR
     const handleAlterar=(produto)=>{
         setNovoProduto(produto)
         setEditar(true);
     }
-    // METODO SUBMIT QUE VAI ATULIZAR O BOTÃO DO FORMULARIO
+ 
+    // METODO SUBIR QUE VAI ATUALIZAR O BOTÃO DO FORMULARIO
     const handleSubmit =()=>{
         if(editar){
             alterarProduto();
-        }else{
+        }
+        else{
             cadastrarProduto();
         }
     }
-
-  return (
-    <div className="mx-auto p-4 bg-green-300">
-      <h1 className=" text-2xl font-bold mb-4 bg-emerald-300 h-auto w-auto flex justify-center">Cadastro de Produto</h1>
+ 
+  return(
+    <div className="bg-gradient-to-r from-blue-400 to-blue-900 mx-auto p-4 min-h-screen">
+      <h1 className="m-8 text-center font-bold text-white text-2xl border bg-black w-80 mx-auto ">Cadastro de Produto</h1>
       <form className="mb-4">
+        <div>
+            <input 
+                type="text" 
+                placeholder="Pesquisar..." 
+                value={pesquisar}
+                onChange={(e)=>setPesquisar(e.target.value)}
+                className="w-[300px] pl-4 pr-4 py-2 border border-gray-800 text-white rounded-full"     
+            />
+        </div>
         <div className="mb-4">
-          <label className=" block text-xl font-medium text-gray-700 ">Nome Produto</label>
-          <input 
+          <label className="font-bold text-xl block m-3">Nome Produto</label>
+          <input className="border-2 rounded-md bg-gray-300 ml-3 p-1 w-[250px] h-[40px]"
            type="text"
-           id="nome" 
-           placeholder="Digite o nome Produto"
+           id="nome"
+           placeholder="Digite o nome do produto"
            value={novoProduto.nome} //pega a variavel do useState
             // pega o que o for digitado no campo    
            onChange={(e)=>setNovoProduto({...novoProduto, nome: e.target.value})}
-           className="mt-2 border rounded w-full bg-amber-50"
            
            />
         </div>
-
-        <div>
-          <label className=" block text-xl font-medium text-gray-700">Descrição Produto</label>
-          <input
+ 
+        <div className="mb-4">
+          <label className="font-bold text-xl block m-3">Descrição Produto</label>
+          <input className="border-2 rounded-md bg-gray-300 ml-3 p-1 w-[250px] h-[40px]"
             type="text"
             id="descricao"
-            placeholder="Digite descrição Produto"
+            placeholder="Digite descrição do produto"
             value={novoProduto.descricao}
             onChange={(e)=>setNovoProduto({...novoProduto, descricao : e.target.value})}
-            className="mt-2 border rounded w-full bg-amber-50"
           />
         </div>
-            <button onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-900 tex-white font-bold py-2 px-4 mt-4 rounded">
+            <button className="border-2 p-2 rounded-full bg-green-500 font-semibold hover:bg-green-700 cursor-pointer pl-3 pr-3"
+                onClick={handleSubmit}>
                 {editar ? "Alterar" : "Cadastrar"}
             </button>
       </form>
       <ul>
         {produto.map(item =>(
-        <li key={item.id} className="border p-2 mb-4 rounded flex items-center justify-between bg-amber-50">
+        <li key={item.id} className="border-2 p-2 mb-4 rounded flex items-center justify-between bg-gray-300">
             <div>
-                <strong className="font-semibold">{item.nome}</strong>{item.descricao}
+                <strong className="font-semibold">{item.nome}-</strong>{item.descricao}
             </div>
             <div>
                 <button onClick={()=>handleAlterar(item)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-2 rounded mr-2">Editar</button>
+                className="bg-amber-300 hover:bg-yellow-600 cursor-pointer text-black font-bold py-2 px-2 rounded mr-2">Editar</button>
                 <button onClick={()=>deletarProduto(item.id)}
-                     className="bg-red-500 hover:bg-yellow-600 text-black font-bold py-2 px-2 rounded mr-2">Deletar</button>
+                     className="bg-red-500 hover:bg-red-600 cursor-pointer text-black font-bold py-2 px-2 rounded mr-2">Deletar</button>
             </div>
         </li>
         ))}     
